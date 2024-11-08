@@ -1,0 +1,56 @@
+CREATE OR REPLACE PROCEDURE dh_ingress.sp_update_protection_info()
+LANGUAGE plpgsql
+AS $BODY$
+BEGIN
+    -- Invert Secure_Data_Protection_Ind in Ingest_Customer_Account
+    UPDATE dh_ingress."Ingest_Customer_Account"
+    SET "Secure_Data_Protection_Ind" = NOT "Secure_Data_Protection_Ind",
+        meta_update_dt = NOW()
+    WHERE meta_load_dt >= NOW() - INTERVAL '30 days' AND "Secure_Data_Protection_Ind" IS NOT NULL;
+
+    -- Invert Secure_Data_Protection_Ind in Ingest_Customer_LOB
+    UPDATE dh_ingress."Ingest_Customer_LOB"
+    SET "Secure_Data_Protection_Ind" = NOT "Secure_Data_Protection_Ind",
+        meta_update_dt = NOW()
+    WHERE meta_load_dt >= NOW() - INTERVAL '30 days' AND "Secure_Data_Protection_Ind" IS NOT NULL;
+
+    -- Invert Secure_Data_Protection_Ind in Ingest_Customer_Ultimate
+    UPDATE dh_ingress."Ingest_Customer_Ultimate"
+    SET "Secure_Data_Protection_Ind" = NOT "Secure_Data_Protection_Ind",
+        meta_update_dt = NOW()
+    WHERE meta_load_dt >= NOW() - INTERVAL '30 days' AND "Secure_Data_Protection_Ind" IS NOT NULL;
+
+    -- Log success
+    INSERT INTO dh_ingress.Execution_Log (procedure_name, status, message)
+    VALUES ('sp_Update_Protection_Info', 'Success', 'Procedure completed successfully');
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Log failure with error details
+        INSERT INTO dh_ingress.Execution_Log (procedure_name, status, error_detail)
+        VALUES ('sp_Update_Protection_Info', 'Failure', SQLERRM);
+        RAISE; -- Optionally re-raise the error
+END;
+$BODY$;
+ALTER PROCEDURE dh_ingress.sp_update_protection_info()
+    OWNER TO citus;
+
+
+CALL dh_ingress.sp_update_protection_info();
+
+-- Verify changes in Ingest_Customer_Account
+SELECT * FROM dh_ingress."Ingest_Customer_Account"
+WHERE meta_load_dt >= NOW() - INTERVAL '30 days';
+
+-- Verify changes in Ingest_Customer_LOB
+SELECT * FROM dh_ingress."Ingest_Customer_LOB"
+WHERE meta_load_dt >= NOW() - INTERVAL '30 days';
+
+-- Verify changes in Ingest_Customer_Ultimate
+SELECT * FROM dh_ingress."Ingest_Customer_Ultimate"
+WHERE meta_load_dt >= NOW() - INTERVAL '30 days';
+
+-- Check the Execution_Log table
+SELECT * FROM dh_ingress.Execution_Log
+WHERE procedure_name = 'sp_Update_Protection_Info';
+
