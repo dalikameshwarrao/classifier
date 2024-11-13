@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: classifier
+
+  datasource:
+    url: jdbc:postgresql://c-lumen-postgresql-cluster.u5j7sko2vubch5.postgres.cosmos.azure.com:5432/lumen-postgresql-db
+    username: citus
+    password: PasswordLumen@123
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+logging:
+  level:
+    root: INFO
+    com.lumen: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+server:
+  port: 9090
