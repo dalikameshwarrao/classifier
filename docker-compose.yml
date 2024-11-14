@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  java_app:
+    container_name: classifier
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9090:9090"
+    environment:
+      DATASOURCE_URL: jdbc:postgresql://c-lumen-postgresql-cluster.u5j7sko2vubch5.postgres.cosmos.azure.com:5432/lumen-postgresql-db
+      DATASOURCE_USERNAME: citus
+      DATASOURCE_PASSWORD: PasswordLumen@123
